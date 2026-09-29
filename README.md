@@ -55,7 +55,7 @@ flowchart LR
 | **dbt unit tests** | `stg_orders` unit test | Transformation logic tested on fixed input rows, like a function |
 | **Sensors & markers** | `wait_for_extract` + `_SUCCESS` | A half-written file is never loaded |
 | **Pools** | `warehouse` pool (1 slot) | Serialises writers where the engine allows only one (DuckDB) |
-| **Cost optimisation** | `fct_orders` partitioned by date and clustered (BigQuery), `make cost-report` | Queries scan only the partitions they need; measured before/after |
+| **Cost optimisation** | `fct_orders` partitioned by date and clustered (BigQuery), `make cost-report` | Queries scan only the partitions they need; `make cost-report` measures the saving |
 | **Infrastructure as code** | `infra/terraform/` | Bucket, datasets and a least-privilege service account, reviewed like code |
 | **CI/CD** | `.github/workflows/ci.yml` | Lint, unit tests, 5-day end-to-end run with every dbt test, idempotency re-run, DAG integrity, `terraform validate` |
 
@@ -144,7 +144,6 @@ by small macros in `transform/macros/cross_db.sql`.
 | Orders per day | ~1,500 (~2,000 on weekends) |
 | dbt models / tests | 7 models, 2 snapshots, 31 data tests, 1 unit test |
 | Idempotent re-run | row count and GMV identical (checked in CI on every push) |
-| Bytes scanned, 1-day query, partitioned vs not | `____` → `____` (fill in from `make cost-report`) |
 
 ---
 
