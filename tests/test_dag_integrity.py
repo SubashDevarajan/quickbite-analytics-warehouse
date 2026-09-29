@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("airflow")
+# Not just "airflow": the repo's own airflow/ folder imports as an empty namespace package.
+pytest.importorskip("airflow.models")
 
 DAG_FOLDER = Path(__file__).resolve().parent.parent / "airflow" / "dags"
 
