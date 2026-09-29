@@ -41,6 +41,14 @@ flowchart LR
 
 **Star schema:** `fct_orders` (one row per order) joins to `dim_customer`, `dim_restaurant` (SCD Type 2) and `dim_date`.
 
+**Airflow back-filling a week, one day at a time** (every task green, ~16 s per day on DuckDB):
+
+![Airflow grid and graph view of the daily warehouse DAG](docs/images/airflow-dag.png)
+
+**dbt lineage** from raw tables through snapshots and dimensions to the fact, marts and custom tests:
+
+![dbt lineage graph](docs/images/dbt-lineage.png)
+
 ## What this project demonstrates
 
 | Concept | Where | Why it matters |
