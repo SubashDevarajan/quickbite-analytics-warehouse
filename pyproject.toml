@@ -1,0 +1,21 @@
+[project]
+name = "quickbite-analytics-warehouse"
+version = "1.0.0"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["quickbite", "tests"]
+# The repo's airflow/ folder would otherwise make ruff treat the airflow package as first-party.
+known-third-party = ["airflow"]

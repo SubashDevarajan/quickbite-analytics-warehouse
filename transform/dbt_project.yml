@@ -1,0 +1,27 @@
+name: quickbite
+version: "1.0.0"
+config-version: 2
+profile: quickbite
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: target
+clean-targets: [target, dbt_packages]
+
+vars:
+  # The business date being processed. Airflow passes {{ ds }}.
+  run_date: "2026-01-01"
+  # How many days back the incremental fact re-processes, to pick up late
+  # status changes (refunds) and restaurants that arrived late in the catalogue.
+  late_arrival_days: 3
+
+models:
+  quickbite:
+    staging:
+      +schema: staging
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table

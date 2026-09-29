@@ -1,0 +1,6 @@
+# Installed in its own virtualenv inside the Airflow image (/opt/dbt-venv),
+# so dbt's dependencies never conflict with Airflow's pinned constraints.
+dbt-core~=1.9.0
+dbt-duckdb~=1.9.0
+dbt-bigquery~=1.9.0
+duckdb==1.1.3

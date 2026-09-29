@@ -1,0 +1,20 @@
+# Two targets, same models. Pick with DBT_TARGET (the Makefile/compose set it from WAREHOUSE).
+quickbite:
+  target: "{{ env_var('DBT_TARGET', 'duckdb') }}"
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      schema: main
+      threads: 4
+      settings:
+        TimeZone: UTC
+
+    bigquery:
+      type: bigquery
+      method: oauth            # uses GOOGLE_APPLICATION_CREDENTIALS or `gcloud auth application-default login`
+      project: "{{ env_var('GCP_PROJECT', 'set-GCP_PROJECT') }}"
+      dataset: staging
+      location: "{{ env_var('BQ_LOCATION', 'asia-south1') }}"
+      threads: 4
+      job_execution_timeout_seconds: 600

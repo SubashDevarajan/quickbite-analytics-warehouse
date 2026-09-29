@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Source extracts exactly as landed, one partition per extract date (quickbite/loader.py).
+    schema: raw
+    loaded_at_field: _loaded_at
+    freshness:
+      warn_after: {count: 26, period: hour}
+      error_after: {count: 50, period: hour}
+    tables:
+      - name: orders
+        description: Incremental extract. An order appears again in a later file whenever its status changes.
+        columns:
+          - name: order_id
+            data_tests: [not_null]
+          - name: updated_at
+            data_tests: [not_null]
+      - name: customers
+        description: Full daily snapshot of the customer table.
+        columns:
+          - name: customer_id
+            data_tests: [not_null]
+      - name: restaurants
+        description: Full daily snapshot of the restaurant catalogue. New restaurants can appear a day late.
+        columns:
+          - name: restaurant_id
+            data_tests: [not_null]

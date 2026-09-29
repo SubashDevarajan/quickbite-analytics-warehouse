@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: Latest state of every order, de-duplicated across daily extracts.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: status
+        data_tests:
+          - accepted_values:
+              values: [PLACED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED, REFUNDED]
+      - name: net_amount
+        data_tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+unit_tests:
+  - name: stg_orders_keeps_latest_version_and_computes_net_amount
+    description: >
+      An order delivered after midnight shows up twice (OUT_FOR_DELIVERY, then
+      DELIVERED); staging must keep only the latest version. A missing payment
+      method becomes UNKNOWN.
+    model: stg_orders
+    given:
+      - input: source('raw', 'orders')
+        rows:
+          - {order_id: O1, customer_id: C1, restaurant_id: R1, order_ts: "2026-01-01 23:50:00", status: OUT_FOR_DELIVERY,
+             items_count: 2, gross_amount: 300.00, discount_amount: 30.00, delivery_fee: 25.00, payment_method: UPI,
+             delivered_ts: null, updated_at: "2026-01-01 23:58:00", _extract_date: "2026-01-01", _loaded_at: "2026-01-02 01:00:00"}
+          - {order_id: O1, customer_id: C1, restaurant_id: R1, order_ts: "2026-01-01 23:50:00", status: DELIVERED,
+             items_count: 2, gross_amount: 300.00, discount_amount: 30.00, delivery_fee: 25.00, payment_method: UPI,
+             delivered_ts: "2026-01-02 00:25:00", updated_at: "2026-01-02 00:25:00", _extract_date: "2026-01-02", _loaded_at: "2026-01-03 01:00:00"}
+          - {order_id: O2, customer_id: C2, restaurant_id: R1, order_ts: "2026-01-02 13:00:00", status: DELIVERED,
+             items_count: 1, gross_amount: 150.00, discount_amount: 0.00, delivery_fee: 0.00, payment_method: null,
+             delivered_ts: "2026-01-02 13:35:00", updated_at: "2026-01-02 13:35:00", _extract_date: "2026-01-02", _loaded_at: "2026-01-03 01:00:00"}
+    expect:
+      rows:
+        - {order_id: O1, status: DELIVERED, is_final: true, net_amount: 295.00, payment_method: UPI}
+        - {order_id: O2, status: DELIVERED, is_final: true, net_amount: 150.00, payment_method: UNKNOWN}

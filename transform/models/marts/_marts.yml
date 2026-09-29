@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: Customer SCD Type 2 dimension, one row per version, plus an unknown member (-1).
+    columns:
+      - name: customer_key
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests: [not_null]
+      - name: loyalty_tier
+        data_tests:
+          - accepted_values:
+              values: [BRONZE, SILVER, GOLD, PLATINUM, UNKNOWN]
+
+  - name: dim_restaurant
+    description: Restaurant SCD Type 2 dimension, one row per version, plus an unknown member (-1).
+    columns:
+      - name: restaurant_key
+        data_tests: [unique, not_null]
+      - name: commission_pct
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 50
+
+  - name: dim_date
+    columns:
+      - name: date_key
+        data_tests: [unique, not_null]
+
+  - name: fct_orders
+    description: One row per order with point-in-time dimension keys.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: date_key
+        data_tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+      - name: customer_key
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_key
+      - name: restaurant_key
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_restaurant')
+              field: restaurant_key
+      - name: net_amount
+        data_tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+  - name: agg_daily_zone_metrics
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [order_date, zone]
+    columns:
+      - name: sla_hit_rate
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+
+  - name: agg_monthly_revenue_by_tier
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [month, loyalty_tier]
